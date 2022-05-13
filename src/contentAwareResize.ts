@@ -110,6 +110,8 @@ const getPixelEnergy = (left: Color | null, middle: Color, right: Color | null):
     return Math.sqrt(lEnergy + rEnergy);
 }
 
+
+
 // Helper function that returns the color of a specified pixel from ImageData
 const getPixel = (img: ImageData, {x, y}: Coordinate): Color => {
     // The ImageData.data is a flat 1D array, every 4 consecutive numbers represent a
@@ -119,6 +121,12 @@ const getPixel = (img: ImageData, {x, y}: Coordinate): Color => {
     const cellsPerColor = 4;  // RGBA.
 
     return img.data.subarray(i * cellsPerColor, i * cellsPerColor + cellsPerColor);
+}
+
+// Also can have a setter to change the color of a pixel.
+const setPixel = (img: ImageData, {x, y}: Coordinate, color: Color): void => {
+    const i = y * img.width + x;
+    img.data.set(color, i * 4);  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/set
 }
 
 
@@ -199,3 +207,12 @@ const findLowEnergySeam(energyMap: EnergyMap, {w, h}: ImageSize): Seam => {
     return seam;
 }
 
+// Delete the seam from the image data by shifting to the left all the pixel on the right of the seam
+const deleteSeam = (img: ImageData, seam: Seam, {w}: ImageSize): void => {
+    seam.forEach(({x: seamX, y: seamY}: Coordinate) => {
+        for (let x = seamX; x < w - 1; x++) {
+            const nextPixel = getPixel(img, {x: x + 1, y: seamY});  // returns a Color 
+            setPixel(img, {x: x, y: seamY}, nextPixel);
+        }
+    });
+};
